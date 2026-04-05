@@ -14,7 +14,7 @@ console.log('API BASE_URL:', BASE_URL);
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  timeout: 60000,
 });
 
 export const getLeaderboard = () => api.get('/leaderboard');
