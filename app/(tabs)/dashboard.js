@@ -66,7 +66,7 @@ export default function Dashboard() {
         headerTitle: 'PathQuest Dashboard',
         headerRight: () => (
           <TouchableOpacity onPress={handleLogout} style={{ marginRight: 15 }}>
-            <LogOut color={COLORS.primary} size={22} />
+            <LogOut color={COLORS.white} size={22} />
           </TouchableOpacity>
         )
       }} />
