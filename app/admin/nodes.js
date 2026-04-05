@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, Alert, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { COLORS, SIZES } from '../../components/Theme';
 import { Plus, Trash2, Edit2, X, Save, MapPin, Database } from 'lucide-react-native';
@@ -22,6 +22,8 @@ export default function AdminNodes() {
   const [ruleInput, setRuleInput] = useState({ prevId: '', bonus: '' });
   const [qrModalVisible, setQrModalVisible] = useState(false);
   const [activeQrNode, setActiveQrNode] = useState(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [nodeToDelete, setNodeToDelete] = useState(null);
 
   const fetchNodes = async () => {
     setLoading(true);
@@ -69,18 +71,21 @@ export default function AdminNodes() {
     }
   };
 
-  const handleDelete = (id) => {
-    Alert.alert('Delete Node', 'Are you sure?', [
-      { text: 'Cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        try {
-          await api.delete(`/nodes/${id}`);
-          fetchNodes();
-        } catch (err) {
-          Alert.alert('Error', 'Failed to delete');
-        }
-      }}
-    ]);
+  const handleDelete = (node) => {
+    setNodeToDelete(node);
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await api.delete(`/nodes/${nodeToDelete._id}`);
+      setDeleteModalVisible(false);
+      fetchNodes();
+      alert('Node deleted successfully');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete node');
+    }
   };
 
   const openEdit = (node) => {
@@ -163,7 +168,7 @@ export default function AdminNodes() {
                   <TouchableOpacity onPress={() => openEdit(item)} style={styles.actionBtn}>
                     <Edit2 size={18} color={COLORS.primary} />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDelete(item._id)} style={styles.actionBtn}>
+                  <TouchableOpacity onPress={() => handleDelete(item)} style={styles.actionBtn}>
                     <Trash2 size={18} color={COLORS.error} />
                   </TouchableOpacity>
                 </View>
@@ -185,7 +190,7 @@ export default function AdminNodes() {
         />
       )}
 
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+      <Modal visible={modalVisible} animationType="fade" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -312,6 +317,28 @@ export default function AdminNodes() {
           </View>
         </View>
       </Modal>
+
+      {/* Custom Delete Confirmation Modal */}
+      <Modal visible={deleteModalVisible} animationType="fade" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModalContent}>
+            <View style={styles.iconCircleWarning}>
+                <Trash2 size={32} color={COLORS.error} />
+            </View>
+            <Text style={styles.confirmTitle}>Delete Node?</Text>
+            <Text style={styles.confirmText}>Are you sure you want to delete <Text style={{fontWeight:'bold'}}>{nodeToDelete?.name}</Text>? All associated points and rules will be removed.</Text>
+            
+            <View style={styles.confirmActions}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setDeleteModalVisible(false)}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.deleteBtn} onPress={confirmDelete}>
+                <Text style={styles.deleteBtnText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       
       <TouchableOpacity 
         style={styles.fab} 
@@ -389,15 +416,24 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    width: '90%',
+    backgroundColor: COLORS.glass,
+    borderRadius: 24,
     padding: SIZES.padding,
-    maxHeight: '80%',
+    maxHeight: '85%',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+    ...(Platform.OS === 'web' && { backdropFilter: 'blur(10px)' }),
   },
   modalHeader: {
     flexDirection: 'row',
@@ -504,13 +540,18 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
   qrModalContent: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
+    backgroundColor: COLORS.glass,
+    borderRadius: 24,
     padding: SIZES.padding,
-    width: '90%',
-    alignSelf: 'center',
-    marginBottom: 'auto',
-    marginTop: 'auto',
+    width: '85%',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+    ...(Platform.OS === 'web' && { backdropFilter: 'blur(10px)' }),
   },
   qrContainer: {
     alignItems: 'center',
@@ -574,5 +615,71 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
-  }
+  },
+  confirmModalContent: {
+    width: '85%',
+    backgroundColor: COLORS.glass,
+    borderRadius: 28,
+    padding: 30,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 15 },
+    shadowOpacity: 0.15,
+    shadowRadius: 30,
+    elevation: 10,
+    ...(Platform.OS === 'web' && { backdropFilter: 'blur(20px)' }),
+  },
+  confirmTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginTop: 15,
+    marginBottom: 10,
+  },
+  confirmText: {
+    fontSize: 14,
+    color: COLORS.lightText,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 25,
+  },
+  confirmActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 45,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  cancelBtnText: {
+    color: COLORS.lightText,
+    fontWeight: 'bold',
+  },
+  deleteBtn: {
+    flex: 2,
+    height: 50,
+    backgroundColor: COLORS.error,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteBtnText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  iconCircleWarning: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFEBEE',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

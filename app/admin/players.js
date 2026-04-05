@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator, Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { COLORS, SIZES } from '../../components/Theme';
 import { Trash2, Edit2, X, Save, User, Search, RefreshCw } from 'lucide-react-native';
@@ -12,6 +12,8 @@ export default function AdminPlayers() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [newScore, setNewScore] = useState('');
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -46,17 +48,21 @@ export default function AdminPlayers() {
   };
 
   const handleDeleteUser = (studentId) => {
-    Alert.alert('Delete Player', `Remove student ${studentId} permanently?`, [
-      { text: 'Cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        try {
-          await deleteUser(studentId);
-          fetchUsers();
-        } catch (err) {
-          Alert.alert('Error', 'Failed to delete');
-        }
-      }}
-    ]);
+    setUserToDelete(studentId);
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteUser(userToDelete);
+      setDeleteModalVisible(false);
+      fetchUsers();
+      alert('User deleted successfully');
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message || 'Failed to delete';
+      console.error('FRONTEND DELETE ERROR:', err);
+      alert(`ERROR: ${msg}`);
+    }
   };
 
   const openEdit = (user) => {
@@ -130,7 +136,7 @@ export default function AdminPlayers() {
         />
       )}
 
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+      <Modal visible={modalVisible} animationType="fade" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -154,6 +160,28 @@ export default function AdminPlayers() {
               <TouchableOpacity style={styles.saveBtn} onPress={handleUpdateScore}>
                 <Save color={COLORS.white} size={20} style={{marginRight: 8}} />
                 <Text style={styles.saveBtnText}>Update Points</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Custom Delete Confirmation Modal */}
+      <Modal visible={deleteModalVisible} animationType="fade" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModalContent}>
+            <View style={styles.iconCircle}>
+                <Trash2 size={32} color={COLORS.error} />
+            </View>
+            <Text style={styles.confirmTitle}>Delete Player?</Text>
+            <Text style={styles.confirmText}>Are you sure you want to remove <Text style={{fontWeight:'bold'}}>{userToDelete}</Text>? This action cannot be undone.</Text>
+            
+            <View style={styles.confirmActions}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setDeleteModalVisible(false)}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.deleteBtn} onPress={confirmDelete}>
+                <Text style={styles.deleteBtnText}>Delete</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -253,15 +281,23 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    width: '85%',
+    backgroundColor: COLORS.glass,
+    borderRadius: 24,
     padding: SIZES.padding,
-    paddingBottom: 40,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+    ...(Platform.OS === 'web' && { backdropFilter: 'blur(10px)' }),
   },
   modalHeader: {
     flexDirection: 'row',
@@ -301,5 +337,79 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  confirmModalContent: {
+    width: '85%',
+    backgroundColor: COLORS.glass,
+    borderRadius: 28,
+    padding: 30,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 15 },
+    shadowOpacity: 0.15,
+    shadowRadius: 30,
+    elevation: 10,
+    ...(Platform.OS === 'web' && { backdropFilter: 'blur(20px)' }),
+  },
+  confirmTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: COLORS.text,
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  confirmText: {
+    fontSize: 15,
+    color: COLORS.lightText,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 30,
+    paddingHorizontal: 10,
+  },
+  confirmActions: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 55,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  cancelBtnText: {
+    color: COLORS.lightText,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  deleteBtn: {
+    flex: 1,
+    height: 55,
+    backgroundColor: COLORS.error,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: COLORS.error,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  deleteBtnText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  iconCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#FFEBEE',
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });

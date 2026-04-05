@@ -24,7 +24,12 @@ export const getNodes = () => api.get('/nodes');
 
 // Admin User Management
 export const getUsers = () => api.get('/users');
-export const updateUserScore = (studentId, totalScore) => api.put(`/users/${studentId}`, { totalScore });
-export const deleteUser = (studentId) => api.delete(`/users/${studentId}`);
+export const updateUserScore = (studentId, totalScore) => api.put(`/users/${encodeURIComponent(studentId)}`, { totalScore });
+export const deleteUser = (studentId) => {
+  const url = `/users/${encodeURIComponent(studentId)}`;
+  console.log('--- FRONTEND: CALLING DELETE ---');
+  console.log('Full URL:', BASE_URL + url);
+  return api.delete(url);
+};
 
 export default api;
