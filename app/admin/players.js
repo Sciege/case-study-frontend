@@ -71,8 +71,11 @@ export default function AdminPlayers() {
     setModalVisible(true);
   };
 
-  const filteredUsers = users.filter(u => 
-    u.studentId.toLowerCase().includes(searchQuery.toLowerCase())
+  console.log('AdminPlayers - Users state:', users);
+  const usersArray = Array.isArray(users) ? users : [];
+  
+  const filteredUsers = usersArray.filter(u => 
+    u.studentId?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (

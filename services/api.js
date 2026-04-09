@@ -31,5 +31,7 @@ export const deleteUser = (studentId) => {
   console.log('Full URL:', BASE_URL + url);
   return api.delete(url);
 };
+export const getBackup = () => api.get('/backup');
+export const restoreData = (data) => api.post('/restore', data);
 
 export default api;
