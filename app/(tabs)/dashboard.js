@@ -1,10 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { COLORS, SIZES } from '../../components/Theme';
-import { Award, Clock, History, LogOut } from 'lucide-react-native';
-import { getUser } from '../../services/api';
-import { getSession, clearSession } from '../../services/auth';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
+import { useLocalSearchParams, useRouter, Stack } from "expo-router";
+import { COLORS, SIZES } from "../../components/Theme";
+import { Award, Clock, History, LogOut } from "lucide-react-native";
+import { getUser } from "../../services/api";
+import { getSession, clearSession } from "../../services/auth";
 
 export default function Dashboard() {
   const { studentId: paramId } = useLocalSearchParams();
@@ -18,9 +26,9 @@ export default function Dashboard() {
     if (!id) {
       id = await getSession();
     }
-    
+
     if (!id) {
-      router.replace('/');
+      router.replace("/");
       return;
     }
 
@@ -30,7 +38,7 @@ export default function Dashboard() {
       setUserData(res.data);
     } catch (err) {
       console.error(err);
-      Alert.alert('Error', 'Failed to fetch user data');
+      Alert.alert("Error", "Failed to fetch user data");
     } finally {
       setLoading(false);
     }
@@ -48,28 +56,36 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     await clearSession();
-    router.replace('/');
+    router.replace("/");
   };
 
-  if (loading) return (
-    <View style={styles.loading}>
-      <Text style={styles.loadingText}>Loading Dashboard...</Text>
-    </View>
-  );
+  if (loading)
+    return (
+      <View style={styles.loading}>
+        <Text style={styles.loadingText}>Loading Dashboard...</Text>
+      </View>
+    );
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
     >
-      <Stack.Screen options={{
-        headerTitle: 'PathQuest Dashboard',
-        headerRight: () => (
-          <TouchableOpacity onPress={handleLogout} style={{ marginRight: 15 }}>
-            <LogOut color={COLORS.white} size={22} />
-          </TouchableOpacity>
-        )
-      }} />
+      <Stack.Screen
+        options={{
+          headerTitle: "PathQuest Dashboard",
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={{ marginRight: 15 }}
+            >
+              <LogOut color={COLORS.white} size={22} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
       <View style={styles.header}>
         <View style={styles.scoreCard}>
           <Award color={COLORS.secondary} size={48} />
@@ -84,7 +100,7 @@ export default function Dashboard() {
       </View>
 
       <Text style={styles.sectionTitle}>Recent History</Text>
-      
+
       {userData.scanHistory && userData.scanHistory.length > 0 ? (
         [...userData.scanHistory].reverse().map((scan, index) => (
           <View key={index} style={styles.scanHistoryItem}>
@@ -93,8 +109,13 @@ export default function Dashboard() {
                 <Clock color={COLORS.primary} size={20} />
               </View>
               <View>
-                <Text style={styles.nodeName}>{scan.nodeName || scan.nodeId}</Text>
-                <Text style={styles.timestamp}>{new Date(scan.timestamp).toLocaleDateString()} {new Date(scan.timestamp).toLocaleTimeString()}</Text>
+                <Text style={styles.nodeName}>
+                  {scan.nodeName || scan.nodeId}
+                </Text>
+                <Text style={styles.timestamp}>
+                  {new Date(scan.timestamp).toLocaleDateString()}{" "}
+                  {new Date(scan.timestamp).toLocaleTimeString()}
+                </Text>
               </View>
             </View>
             <View style={styles.pointBadge}>
@@ -105,7 +126,9 @@ export default function Dashboard() {
       ) : (
         <View style={styles.emptyContainer}>
           <History color={COLORS.lightText} size={48} />
-          <Text style={styles.emptyText}>No scans yet. Go start exploring!</Text>
+          <Text style={styles.emptyText}>
+            No scans yet. Go start exploring!
+          </Text>
         </View>
       )}
     </ScrollView>
@@ -127,18 +150,18 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.primary,
     padding: SIZES.padding * 1.5,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: SIZES.padding,
   },
   totalScoreLabel: {
     fontSize: 16,
     color: COLORS.lightText,
     marginTop: 8,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   totalScoreValue: {
     fontSize: 48,
-    fontWeight: '900',
+    fontWeight: "900",
     color: COLORS.primary,
   },
   studentCard: {
@@ -150,12 +173,12 @@ const styles = StyleSheet.create({
   },
   studentIdValue: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.text,
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
     marginBottom: SIZES.padding,
   },
@@ -163,29 +186,29 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     padding: 15,
     borderRadius: SIZES.borderRadius,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
   },
   scanPrimary: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   iconCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#ffebee',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#ffebee",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   nodeName: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.text,
   },
   timestamp: {
@@ -200,13 +223,13 @@ const styles = StyleSheet.create({
   },
   pointText: {
     color: COLORS.primary,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 14,
   },
   loading: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     fontSize: 18,
@@ -214,13 +237,13 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     paddingVertical: SIZES.padding * 2,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyText: {
     marginTop: 10,
     color: COLORS.lightText,
     fontSize: 16,
-    fontStyle: 'italic',
-  }
+    fontStyle: "italic",
+  },
 });
