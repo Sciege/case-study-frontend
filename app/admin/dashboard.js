@@ -233,11 +233,11 @@ export default function AdminDashboard() {
         />
 
         <MenuButton
-          title="System Stats"
-          subtitle="View leaderboard and scan analytics"
+          title="Visual Analytics"
+          subtitle="View charts and participation trends"
           icon={BarChart3}
           color="#FF9800"
-          onPress={() => router.push("/(tabs)/leaderboard")}
+          onPress={() => router.push("/admin/analytics")}
         />
       </View>
 

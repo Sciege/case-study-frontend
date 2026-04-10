@@ -39,4 +39,9 @@ export const deleteUser = (studentId) => {
 export const getBackup = () => api.get("/backup");
 export const restoreData = (data) => api.post("/restore", data);
 
+// Analytics Aggregations
+export const getNodeStats = () => api.get("/analytics/node-stats");
+export const getUserStats = () => api.get("/analytics/user-stats");
+export const getDailyActivity = () => api.get("/analytics/daily-activity");
+
 export default api;
